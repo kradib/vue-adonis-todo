@@ -17,5 +17,10 @@
 const Route = use('Route')
 
 Route.get('/', () => {
-  return { greeting: 'Hello world in JSON' }
+  return { greeting: 'Backend for our Todo App is running :)' }
 })
+
+
+Route.group(()=>{
+  Route.post('auth/register', 'UserController.register');
+}).prefix('v1')
