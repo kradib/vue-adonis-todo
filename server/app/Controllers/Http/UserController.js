@@ -2,6 +2,19 @@
 const User = use('App/Models/User');
 class UserController {
 
+    async login({request, auth, response}){
+
+        try {
+            const { email, password } = request.post();
+            const token = await auth.attempt(email, password);
+            return token;   
+        } catch (error) {
+            response.status(error.status | 500).send(error);
+        }
+
+    }
+
+
     async register({ request, response }) {
         try {
             const { email, password } = request.post();
@@ -10,12 +23,9 @@ class UserController {
                 password,
                 username: email
             });
-            response.status(200).send({
-                data: user.id,
-                message: 'successfully created user'
-
-            });
-
+            
+            return  this.login(...arguments);
+            
         } catch (error) {
             response.status(error.status | 500).send(error);
         }
