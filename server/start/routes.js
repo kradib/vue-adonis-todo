@@ -34,3 +34,14 @@ Route.group(()=>{
   Route.post('/:id', 'ProjectController.update').middleware('auth');
   Route.delete('/:id', 'ProjectController.destroy').middleware('auth');
 }).prefix('v1/project')
+
+Route.group(()=>{
+  Route.get('/all', 'TaskController.index').middleware('auth');
+  Route.put('/add', 'TaskController.store').middleware('auth');
+}).prefix('v1/project/:id')
+
+Route.group(()=>{
+  Route.get('/:id', 'TaskController.show').middleware('auth');
+  Route.post('/:id', 'TaskController.update').middleware('auth');
+  Route.delete('/:id', 'TaskController.destroy').middleware('auth');
+}).prefix('v1/task')
