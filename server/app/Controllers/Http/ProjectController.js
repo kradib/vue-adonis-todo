@@ -1,5 +1,9 @@
 'use strict'
 
+const Project = use('App/Models/Project');
+//const AuthorizationService = use('App/Services/AuthorizationService');
+
+
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
@@ -18,9 +22,10 @@ class ProjectController {
    * @param {View} ctx.view
    */
   async index({ auth, response }) {
-  
+
     try {
       const user = await auth.getUser();
+
       const projects = await user.projects().fetch();
       response.status(200).send({
         projects,
@@ -34,17 +39,6 @@ class ProjectController {
 
   }
 
-  /**
-   * Render a form to be used for creating a new project.
-   * GET projects/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create({ request, response, view }) {
-  }
 
   /**
    * Create/save a new project.
@@ -54,7 +48,26 @@ class ProjectController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {
+  async store({ request, auth, response }) {
+    try {
+      const user = await auth.getUser();
+      const { title } = request.post();
+
+      const project = new Project();
+      project.fill({
+        title,
+      });
+      await user.projects().save(project);
+      response.status(200).send({
+        project,
+        message: 'Successfully Added project'
+      })
+
+    } catch (error) {
+      response.status(error.status | 500).send(error);
+    }
+
+
   }
 
   /**
@@ -66,21 +79,31 @@ class ProjectController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async show({ params, request, response, view }) {
+  async show({ params: { id }, request, response, auth }) {
+    try {
+      const user = await auth.getUser();
+      const project = await Project.find(id);
+
+      if(!project){
+        return response.status(404).json({
+          message: 'resource not found'
+        });
+      }
+      else if (project.user_id !== user.id) {
+        return response.status(403).json({
+          message: 'invalid access'
+        });
+      }
+      
+      response.status(200).send(project);
+      
+
+    } catch (error) {
+      response.status(error.status | 500).send(error);
+    }
   }
 
-  /**
-   * Render a form to update an existing project.
-   * GET projects/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit({ params, request, response, view }) {
-  }
-
+  
   /**
    * Update project details.
    * PUT or PATCH projects/:id
@@ -89,7 +112,36 @@ class ProjectController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {
+  async update({ params:{id}, request, response , auth}) {
+    
+    try {
+      const user = await auth.getUser();
+      const {title}= request.post();
+      const project = await Project.find(id);
+
+
+      if(!project){
+        return response.status(404).json({
+          message: 'resource not found'
+        });
+      }
+      else if (project.user_id !== user.id) {
+        response.status(403).json({
+          message: 'invalid access'
+        });
+      }
+      project.merge({title});
+      await project.save();
+      
+      response.status(200).send({
+        data: 'successfully updated a project'
+      });
+    
+
+    } catch (error) {
+      response.status(error.status | 500).send(error);
+    }
+  
   }
 
   /**
@@ -100,7 +152,33 @@ class ProjectController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {
+  async destroy({ params: {id}, request, response, auth }) {
+    try {
+      const user = await auth.getUser();
+      const project = await Project.find(id);
+      //console.log(user)
+      //console.log(project)
+      if(!project){
+        return response.status(404).json({
+          message: 'resource not found'
+        });
+      }
+      else if (project.user_id !== user.id) {
+        return response.status(403).json({
+          message: 'invalid access'
+        });
+      }
+
+      await project.delete();
+      response.status(200).send({
+        project,
+        message: 'Successfully deleted project',
+      });
+
+      
+    } catch (error) {
+      response.status(error.status | 500).send(error);
+    }
   }
 }
 

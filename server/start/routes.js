@@ -29,5 +29,8 @@ Route.group(()=>{
 
 Route.group(()=>{
   Route.get('/', 'ProjectController.index').middleware('auth');
-  
+  Route.put('/', 'ProjectController.store').middleware('auth');
+  Route.get('/:id', 'ProjectController.show').middleware('auth');
+  Route.post('/:id', 'ProjectController.update').middleware('auth');
+  Route.delete('/:id', 'ProjectController.destroy').middleware('auth');
 }).prefix('v1/project')
